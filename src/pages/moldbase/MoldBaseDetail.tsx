@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useMoldBaseStore } from '../../store/moldbase';
 import { useProjectStore } from '../../store/project';
 import Modal from '../../components/ui/Modal';
@@ -43,6 +44,8 @@ const availableAccessories: AccessoryItem[] = [
 ];
 
 const MoldBaseDetail = () => {
+  const { id = '' } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { getMoldBase, moldBases } = useMoldBaseStore();
   const { projects } = useProjectStore();
   const [selectedAccessories, setSelectedAccessories] = useState<string[]>([]);
@@ -50,9 +53,10 @@ const MoldBaseDetail = () => {
   const [selectedProject, setSelectedProject] = useState('');
   const [confirmSuccess, setConfirmSuccess] = useState(false);
 
-  const idMatch = window.location.hash.match(/\/moldbase\/([^/?#]+)/);
-  const id = idMatch ? idMatch[1] : '';
-  const moldBase = useMemo(() => getMoldBase(id) || moldBases[0], [id, getMoldBase, moldBases]);
+  const moldBase = useMemo(() => {
+    if (!id) return undefined;
+    return getMoldBase(id);
+  }, [id, getMoldBase, moldBases]);
 
   const accessoryCategories = useMemo(() => {
     const cats: Record<string, AccessoryItem[]> = {};
@@ -91,7 +95,7 @@ const MoldBaseDetail = () => {
   };
 
   const handleBack = () => {
-    window.location.hash = '#/moldbase';
+    navigate('/moldbase');
   };
 
   if (!moldBase) {

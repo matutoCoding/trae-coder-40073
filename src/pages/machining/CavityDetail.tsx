@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useMachiningStore } from '../../store/machining';
 import Stepper, { type StepItem } from '../../components/ui/Stepper';
 import Tabs from '../../components/ui/Tabs';
@@ -24,12 +25,15 @@ import type { CavityTask } from '../../types';
 import { cavityTaskStatusMap, partTypeMap } from '../../utils/status';
 
 const CavityDetail = () => {
+  const { id = '' } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { getCavityTask, cavityTasks, advanceCavityProcess } = useMachiningStore();
   const [activeTab, setActiveTab] = useState('process');
 
-  const idMatch = window.location.hash.match(/\/machining\/cavity\/([^/?#]+)/);
-  const id = idMatch ? idMatch[1] : '';
-  const task = useMemo(() => getCavityTask(id) || cavityTasks[0], [id, getCavityTask, cavityTasks]);
+  const task = useMemo(
+    () => (id ? getCavityTask(id) : undefined),
+    [id, getCavityTask]
+  );
 
   const steps: StepItem[] = useMemo(() => {
     if (!task) return [];
@@ -41,7 +45,7 @@ const CavityDetail = () => {
   }, [task]);
 
   const handleBack = () => {
-    window.location.hash = '#/machining/cavity';
+    navigate('/machining/cavity');
   };
 
   const handleAdvanceProcess = () => {

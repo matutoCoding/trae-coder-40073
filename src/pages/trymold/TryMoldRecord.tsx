@@ -43,7 +43,7 @@ const DEFECT_OPTIONS = [
 const TEMP_ZONES = ['一段', '二段', '三段', '四段', '五段'];
 
 export default function TryMoldRecord() {
-  const { id = '' } = useParams();
+  const params = useParams<{ id?: string; applyId?: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('params');
 
@@ -56,15 +56,17 @@ export default function TryMoldRecord() {
     records: allRecords,
   } = useTryMoldStore();
 
-  const isNew = id.startsWith('new-');
-  const applyId = isNew ? id.replace('new-record/', '') : '';
-  const realApplyId = isNew ? applyId : allRecords.find((r) => r.id === id)?.applyId || '';
+  const isNew = params.applyId !== undefined;
+  const newApplyId = params.applyId || '';
+  const editRecordId = isNew ? '' : params.id || '';
+  const editingRecord = !isNew ? allRecords.find((r) => r.id === editRecordId) : undefined;
+  const realApplyId = isNew ? newApplyId : editingRecord?.applyId || '';
   const apply = getApply(realApplyId);
 
   const [record, setRecord] = useState(() => {
     if (isNew) {
       return {
-        applyId: applyId,
+        applyId: realApplyId,
         sampleQty: 50,
         parameters: {
           temperature: [200, 200, 190, 60, 50],
@@ -81,10 +83,9 @@ export default function TryMoldRecord() {
         images: [] as string[],
       };
     }
-    const r = allRecords.find((x) => x.id === id);
     return (
-      r || {
-        applyId: '',
+      editingRecord || {
+        applyId: realApplyId,
         sampleQty: 50,
         parameters: {
           temperature: [200, 200, 190, 60, 50],
@@ -124,17 +125,21 @@ export default function TryMoldRecord() {
       alert('请填写操作员');
       return;
     }
-    let recordId = id;
+    if (!realApplyId) {
+      alert('未关联到试模申请，无法保存');
+      return;
+    }
+    let recordId = editRecordId;
     if (isNew) {
       const rec = {
         ...record,
-        applyId: applyId,
+        applyId: realApplyId,
       };
       addRecord(rec);
-      const records = getApplyRecords(applyId);
+      const records = getApplyRecords(realApplyId);
       recordId = records[records.length - 1]?.id || '';
     } else {
-      updateRecord(id, record);
+      updateRecord(editRecordId, { ...record, applyId: realApplyId });
     }
 
     if (withInspection && recordId) {

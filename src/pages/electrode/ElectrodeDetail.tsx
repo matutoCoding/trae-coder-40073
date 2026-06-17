@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useElectrodeStore } from '../../store/electrode';
 import ProgressBar from '../../components/ui/ProgressBar';
 import Tag from '../../components/ui/Tag';
@@ -27,21 +28,21 @@ import type { Electrode } from '../../types';
 import { electrodeStatusMap } from '../../utils/status';
 
 const ElectrodeDetail = () => {
+  const { id = '' } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { getElectrode, electrodes, recordUsage, updateEdmParams, changeStatus } = useElectrodeStore();
   const [edmParams, setEdmParams] = useState<Electrode['edmParams'] | null>(null);
   const [saved, setSaved] = useState(false);
 
-  const idMatch = window.location.hash.match(/\/electrode\/([^/?#]+)/);
-  const id = idMatch ? idMatch[1] : '';
   const electrode = useMemo(
-    () => getElectrode(id) || electrodes[0],
-    [id, getElectrode, electrodes]
+    () => (id ? getElectrode(id) : undefined),
+    [id, getElectrode]
   );
 
   const currentParams = edmParams ?? electrode?.edmParams;
 
   const handleBack = () => {
-    window.location.hash = '#/electrode';
+    navigate('/electrode');
   };
 
   const handleRecordUsage = () => {

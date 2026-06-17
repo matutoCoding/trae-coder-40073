@@ -184,7 +184,7 @@ export default function TryMoldList() {
               if (records.length > 0) {
                 navigate(`/trymold/record/${records[0].id}`);
               } else {
-                navigate(`/trymold/new-record/${record.id}`);
+                navigate(`/trymold/record/new/${record.id}`);
               }
             }}
           >

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMoldBaseStore } from '../../store/moldbase';
 import Select from '../../components/ui/Select';
 import Input from '../../components/ui/Input';
@@ -7,6 +8,7 @@ import { Search, Filter, Grid3X3, List, Box, Scale, DollarSign, ChevronRight } f
 import { formatCurrency } from '../../utils/currency';
 
 const MoldBaseList = () => {
+  const navigate = useNavigate();
   const { moldBases, getTypes, getSeries, filterByDimension } = useMoldBaseStore();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -49,8 +51,8 @@ const MoldBaseList = () => {
     return list;
   }, [moldBases, typeFilter, seriesFilter, keyword, minLength, maxLength, minWidth, maxWidth, filterByDimension]);
 
-  const handleCardClick = (id: string) => {
-    window.location.hash = `#/moldbase/${id}`;
+  const handleCardClick = (code: string) => {
+    navigate(`/moldbase/${code}`);
   };
 
   return (

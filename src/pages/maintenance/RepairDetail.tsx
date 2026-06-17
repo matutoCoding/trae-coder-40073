@@ -42,6 +42,10 @@ export default function RepairDetail() {
     updateRepairOrder,
     addRepairPart,
     removeRepairPart,
+    getConsumablePart,
+    stockOut,
+    stockIn,
+    consumableParts,
   } = useMaintenanceStore();
 
   const order = getRepairOrder(id);
@@ -90,7 +94,7 @@ export default function RepairDetail() {
       title: '规格',
       width: 160,
       render: (_v, record) => {
-        const part = seedConsumableParts.find((p) => p.id === record.partId);
+        const part = consumableParts.find((p) => p.id === record.partId);
         return <span className="text-neutral-500 text-sm">{part?.spec || '-'}</span>;
       },
     },
@@ -134,15 +138,27 @@ export default function RepairDetail() {
           variant="ghost"
           icon={Trash2}
           className="text-danger hover:text-danger"
-          onClick={() => removeRepairPart(id, record.id)}
+          onClick={() => {
+            stockIn(record.partId, record.qty);
+            removeRepairPart(id, record.id);
+          }}
         />
       ),
     },
   ];
 
   const addPart = () => {
-    const part = seedConsumableParts.find((p) => p.id === newPart.partId);
+    const part = consumableParts.find((p) => p.id === newPart.partId);
     if (!part || newPart.qty <= 0) return;
+    if (part.stock < newPart.qty) {
+      alert(`库存不足！当前库存仅 ${part.stock} 件，无法领用 ${newPart.qty} 件。请先补充库存。`);
+      return;
+    }
+    const ok = stockOut(part.id, newPart.qty);
+    if (!ok) {
+      alert('库存扣减失败，请检查库存数量');
+      return;
+    }
     addRepairPart(id, {
       partId: part.id,
       partName: part.name,
@@ -164,7 +180,7 @@ export default function RepairDetail() {
     navigate('/maintenance');
   };
 
-  const availableParts = seedConsumableParts.filter(
+  const availableParts = consumableParts.filter(
     (p) => !order.parts.find((x) => x.partId === p.id)
   );
 
@@ -447,9 +463,17 @@ export default function RepairDetail() {
           {newPart.partId && (
             <div className="p-3 rounded-lg bg-neutral-50 border border-neutral-200 text-sm">
               {(() => {
-                const p = seedConsumableParts.find((x) => x.id === newPart.partId);
+                const p = consumableParts.find((x) => x.id === newPart.partId);
                 return p ? (
                   <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500">当前库存</span>
+                      <span className={`font-mono font-semibold ${
+                        p.stock < p.minStock ? 'text-danger' : 'text-success-700'
+                      }`}>
+                        {p.stock} 件
+                      </span>
+                    </div>
                     <div className="flex justify-between">
                       <span className="text-neutral-500">单价</span>
                       <span className="font-mono">¥{p.unitPrice.toFixed(2)}</span>
@@ -460,6 +484,12 @@ export default function RepairDetail() {
                         ¥{(p.unitPrice * newPart.qty).toFixed(2)}
                       </span>
                     </div>
+                    {p.stock < newPart.qty && (
+                      <div className="mt-2 p-2 rounded-md bg-danger/10 border border-danger/20 text-danger text-xs flex items-start gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                        <span>库存不足！当前库存 {p.stock} 件，无法领用 {newPart.qty} 件</span>
+                      </div>
+                    )}
                   </div>
                 ) : null;
               })()}

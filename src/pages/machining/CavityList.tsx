@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Table, { type TableColumn } from '../../components/ui/Table';
 import Select from '../../components/ui/Select';
 import Input from '../../components/ui/Input';
@@ -10,6 +11,7 @@ import type { CavityTask } from '../../types';
 import { cavityTaskStatusMap, partTypeMap } from '../../utils/status';
 
 const CavityList = () => {
+  const navigate = useNavigate();
   const { cavityTasks, filteredCavityTasks } = useMachiningStore();
   const [statusFilter, setStatusFilter] = useState<CavityTask['status'] | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<CavityTask['partType'] | 'all'>('all');
@@ -47,7 +49,7 @@ const CavityList = () => {
   }, [filteredCavityTasks, statusFilter, typeFilter, projectFilter, keyword, cavityTasks]);
 
   const handleRowClick = (record: CavityTask) => {
-    window.location.hash = `#/machining/cavity/${record.id}`;
+    navigate(`/machining/cavity/${record.id}`);
   };
 
   const columns: TableColumn<CavityTask>[] = [

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Table, { type TableColumn } from '../../components/ui/Table';
 import Select from '../../components/ui/Select';
 import Input from '../../components/ui/Input';
@@ -32,6 +33,7 @@ const defaultForm: NewElectrodeForm = {
 };
 
 const ElectrodeList = () => {
+  const navigate = useNavigate();
   const { electrodes, filteredElectrodes, addElectrode } = useElectrodeStore();
   const { projects } = useProjectStore();
   const [statusFilter, setStatusFilter] = useState<Electrode['status'] | 'all'>('all');
@@ -103,7 +105,7 @@ const ElectrodeList = () => {
   };
 
   const handleRowClick = (record: Electrode) => {
-    window.location.hash = `#/electrode/${record.id}`;
+    navigate(`/electrode/${record.id}`);
   };
 
   const columns: TableColumn<Electrode>[] = [

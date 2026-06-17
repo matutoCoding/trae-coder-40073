@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import KanbanBoard, { type KanbanCard, type KanbanColumn } from '../../components/ui/KanbanBoard';
 import { useMachiningStore } from '../../store/machining';
 import Tag from '../../components/ui/Tag';
@@ -35,6 +36,7 @@ const wirecutStatusColumnOrder = [
 ];
 
 const MachiningBoard = () => {
+  const navigate = useNavigate();
   const { cavityTasks, wireCutTasks, changeCavityStatus } = useMachiningStore();
   const [view, setView] = useState<BoardView>('cavity');
 
@@ -153,7 +155,7 @@ const MachiningBoard = () => {
 
   const handleCardClick = (card: KanbanCard, columnKey: string) => {
     if (view === 'cavity') {
-      window.location.hash = `#/machining/cavity/${card.id}`;
+      navigate(`/machining/cavity/${card.id}`);
     }
   };
 
