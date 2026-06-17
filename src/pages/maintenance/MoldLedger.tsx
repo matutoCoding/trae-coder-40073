@@ -76,11 +76,18 @@ export default function MoldLedger() {
       }
       changeLedgerStatus(selectedLedger.id, 'loaned', borrower.trim());
     } else {
-      changeLedgerStatus(selectedLedger.id, 'in_stock', undefined);
+      if (!location.trim()) {
+        alert('请填写归还库位');
+        return;
+      }
+      changeLedgerStatus(selectedLedger.id, 'in_stock', undefined, location.trim());
       if (cycles > 0) {
         updateLastCycles(selectedLedger.id, cycles);
       }
     }
+    setBorrower('');
+    setLocation('');
+    setCycles(0);
     setActionModal(false);
   };
 

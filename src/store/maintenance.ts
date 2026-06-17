@@ -50,7 +50,7 @@ export interface MaintenanceActions {
   addLedger: (l: Omit<MoldLedger, 'id'>) => void;
   updateLedger: (id: string, patch: Partial<MoldLedger>) => void;
   deleteLedger: (id: string) => void;
-  changeLedgerStatus: (id: string, status: LedgerStatus, borrower?: string) => void;
+  changeLedgerStatus: (id: string, status: LedgerStatus, borrower?: string, location?: string) => void;
   updateLastCycles: (id: string, cycles: number) => void;
 }
 
@@ -195,13 +195,14 @@ export const useMaintenanceStore = create<MaintenanceStore>()(
           moldLedgers: state.moldLedgers.filter((l) => l.id !== id),
         })),
 
-      changeLedgerStatus: (id, status, borrower) =>
+      changeLedgerStatus: (id, status, borrower, location) =>
         set((state) => ({
           moldLedgers: state.moldLedgers.map((l) => {
             if (l.id !== id) return l;
             const today = new Date().toISOString().slice(0, 10);
             const updated: Partial<MoldLedger> = { status };
             if (borrower !== undefined) updated.borrower = borrower;
+            if (location !== undefined && status === 'in_stock') updated.location = location;
             if ((status === 'in_stock' || status === 'loaned' || status === 'using') && !l.inDate) {
               updated.inDate = today;
             }
@@ -210,6 +211,7 @@ export const useMaintenanceStore = create<MaintenanceStore>()(
             }
             if (status === 'in_stock') {
               updated.outDate = undefined;
+              updated.borrower = undefined;
             }
             return { ...l, ...updated };
           }),

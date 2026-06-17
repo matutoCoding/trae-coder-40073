@@ -99,12 +99,7 @@ const ElectrodeDetail = () => {
           ? 'warning'
           : 'gray';
 
-  const usageHistory = [
-    { id: 'h1', date: '2026-06-17 14:30', hours: 2.5, operator: '张伟', project: electrode.projectNo },
-    { id: 'h2', date: '2026-06-16 09:15', hours: 3.0, operator: '张伟', project: electrode.projectNo },
-    { id: 'h3', date: '2026-06-15 15:45', hours: 2.0, operator: '李军', project: electrode.projectNo },
-    { id: 'h4', date: '2026-06-14 10:20', hours: 1.5, operator: '李军', project: electrode.projectNo },
-  ];
+  const usageHistory = electrode.usageHistory || [];
 
   return (
     <div className="space-y-5">
@@ -281,16 +276,24 @@ const ElectrodeDetail = () => {
                 </tr>
               </thead>
               <tbody>
-                {usageHistory.map((h) => (
-                  <tr key={h.id}>
-                    <td className="text-sm">{h.date}</td>
-                    <td>
-                      <Tag variant="primary">{h.hours}h</Tag>
+                {usageHistory.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="text-center text-neutral-400 py-8">
+                      暂无使用记录，点击右上角「记录使用」开始登记
                     </td>
-                    <td className="text-sm text-neutral-700">{h.operator}</td>
-                    <td className="text-sm text-neutral-700">{h.project}</td>
                   </tr>
-                ))}
+                ) : (
+                  usageHistory.map((h) => (
+                    <tr key={h.id}>
+                      <td className="text-sm">{h.date}</td>
+                      <td>
+                        <Tag variant="primary">{h.hours}h</Tag>
+                      </td>
+                      <td className="text-sm text-neutral-700">{h.operator}</td>
+                      <td className="text-sm text-neutral-700">{h.project}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -300,8 +303,10 @@ const ElectrodeDetail = () => {
               <span>总计使用</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-neutral-500">4 次</span>
-              <span className="text-lg font-bold text-primary-700">9.0 h</span>
+              <span className="text-sm text-neutral-500">{usageHistory.length} 次</span>
+              <span className="text-lg font-bold text-primary-700">
+                {usageHistory.reduce((sum, h) => sum + (h.hours || 0), 0).toFixed(1)} h
+              </span>
             </div>
           </div>
         </div>

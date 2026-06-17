@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMoldBaseStore } from '../../store/moldbase';
 import { useProjectStore } from '../../store/project';
@@ -47,7 +47,7 @@ const MoldBaseDetail = () => {
   const { id = '' } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getMoldBase, moldBases } = useMoldBaseStore();
-  const { projects } = useProjectStore();
+  const { projects, getProject, updateProject } = useProjectStore();
   const [selectedAccessories, setSelectedAccessories] = useState<string[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState('');
@@ -57,6 +57,17 @@ const MoldBaseDetail = () => {
     if (!id) return undefined;
     return getMoldBase(id);
   }, [id, getMoldBase, moldBases]);
+
+  useEffect(() => {
+    if (!moldBase) return;
+    const linkedProject = projects.find((p) => p.moldBaseCode === moldBase.code);
+    if (linkedProject?.moldBaseAccessories) {
+      setSelectedAccessories(linkedProject.moldBaseAccessories);
+    }
+    if (linkedProject) {
+      setSelectedProject(linkedProject.id);
+    }
+  }, [moldBase, projects]);
 
   const accessoryCategories = useMemo(() => {
     const cats: Record<string, AccessoryItem[]> = {};
@@ -84,14 +95,26 @@ const MoldBaseDetail = () => {
   };
 
   const handleConfirmSelection = () => {
-    if (selectedProject) {
-      setConfirmSuccess(true);
-      setTimeout(() => {
-        setConfirmSuccess(false);
-        setModalOpen(false);
-        setSelectedProject('');
-      }, 1800);
+    if (!selectedProject) {
+      alert('请先选择要关联的项目');
+      return;
     }
+    if (!moldBase) return;
+    updateProject(selectedProject, {
+      moldBaseCode: moldBase.code,
+      moldBaseAccessories: [...selectedAccessories],
+      moldBaseTotalPrice: totalPrice,
+      moldBaseSelectedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
+    });
+    const proj = getProject(selectedProject);
+    if (proj?.status === 'design') {
+      updateProject(selectedProject, { status: 'machining' });
+    }
+    setConfirmSuccess(true);
+    setTimeout(() => {
+      setConfirmSuccess(false);
+      setModalOpen(false);
+    }, 1800);
   };
 
   const handleBack = () => {

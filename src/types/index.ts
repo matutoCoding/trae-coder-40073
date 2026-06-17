@@ -43,6 +43,9 @@ export interface MoldProject {
   customerId: string;
   customerName: string;
   moldBaseCode: string;
+  moldBaseAccessories?: string[];
+  moldBaseTotalPrice?: number;
+  moldBaseSelectedAt?: string;
   status: 'design' | 'machining' | 'assembly' | 'trymold' | 'completed' | 'maintenance' | 'scrapped';
   totalCycles: number;
   currentCycles: number;
@@ -108,6 +111,14 @@ export interface WireCutTask {
   operator: string;
 }
 
+export interface UsageHistoryItem {
+  id: string;
+  date: string;
+  hours: number;
+  operator: string;
+  project: string;
+}
+
 export interface Electrode {
   id: string;
   projectId: string;
@@ -118,6 +129,7 @@ export interface Electrode {
   size: string;
   usedCount: number;
   maxUseCount: number;
+  usageHistory?: UsageHistoryItem[];
   edmParams: {
     voltage: number;
     current: number;

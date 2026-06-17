@@ -31,7 +31,10 @@ export type ElectrodeStore = ElectrodeState & ElectrodeActions;
 export const useElectrodeStore = create<ElectrodeStore>()(
   persist(
     (set, get) => ({
-      electrodes: seedElectrodes,
+      electrodes: seedElectrodes.map((e) => ({
+        usageHistory: [],
+        ...e,
+      })) as Electrode[],
       statusFilter: 'all',
       projectFilter: '',
 
@@ -78,17 +81,25 @@ export const useElectrodeStore = create<ElectrodeStore>()(
           }),
         })),
 
-      recordUsage: (id, hours) =>
+      recordUsage: (id, hours = 1.5) =>
         set((state) => ({
           electrodes: state.electrodes.map((e) => {
             if (e.id !== id) return e;
             const usedCount = Math.min(e.usedCount + 1, e.maxUseCount);
             const status = usedCount >= e.maxUseCount ? 'worn' : e.status === 'pending' ? 'using' : e.status;
+            const newItem = {
+              id: `uh${Date.now()}`,
+              date: new Date().toISOString().slice(0, 16).replace('T', ' '),
+              hours,
+              operator: e.operator || '当前操作员',
+              project: e.projectNo,
+            };
             return {
               ...e,
               usedCount,
               status,
-              actualHours: hours !== undefined ? e.actualHours + hours : e.actualHours,
+              actualHours: e.actualHours + hours,
+              usageHistory: [newItem, ...(e.usageHistory || [])],
             };
           }),
         })),
